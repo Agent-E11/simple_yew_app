@@ -42,11 +42,15 @@ impl Component for Calculator {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::Calculate => match self.operator {
-                Operator::Mul => self.result = self.number_1 * self.number_2,
-                Operator::Div => self.result = self.number_1 / self.number_2,
-                Operator::Add => self.result = self.number_1 + self.number_2,
-                Operator::Sub => self.result = self.number_1 - self.number_2,
+            Msg::Calculate => {
+                let res = match self.operator {
+                    Operator::Mul => self.number_1 * self.number_2,
+                    Operator::Div => self.number_1 / self.number_2,
+                    Operator::Add => self.number_1 + self.number_2,
+                    Operator::Sub => self.number_1 - self.number_2,
+                };
+                self.result = res;
+                self.number_1 = res;
             },
             Msg::SetNumber(set_1, n) => if set_1 { self.number_1 = n } else { self.number_2 = n},
             Msg::SetOperator(o) => self.operator = o,
@@ -56,17 +60,18 @@ impl Component for Calculator {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let set_1 = self.set_number_1;
         html! {
             <div>
                 <p>{ self.number_1 }{ &self.operator }{ self.number_2 }</p>
                 <div>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetNumber(&self.set_number_1, 1.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 1.))}>
                         { "1" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetNumber(&self.set_number_1, 2.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 2.))}>
                         { "2" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetNumber(&self.set_number_1, 3.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 3.))}>
                         { "3" }
                     </button>
                     <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetOperator(Operator::Mul))}>
@@ -78,13 +83,13 @@ impl Component for Calculator {
 
                 </div>
                 <div>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetNumber(&self.set_number_1, 4.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 4.))}>
                         { "4" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetNumber(&self.set_number_1, 5.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 5.))}>
                         { "5" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetNumber(&self.set_number_1, 6.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 6.))}>
                         { "6" }
                     </button>
                     <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetOperator(Operator::Add))}>
@@ -95,13 +100,13 @@ impl Component for Calculator {
                     </button>
                 </div>
                 <div>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetNumber(&self.set_number_1, 7.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 7.))}>
                         { "7" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetNumber(&self.set_number_1, 8.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 8.))}>
                         { "8" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetNumber(&self.set_number_1, 9.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 9.))}>
                         { "9" }
                     </button>
                     <button class="wide-button" onclick={ctx.link().callback(|_| Msg::Calculate)}>
@@ -110,7 +115,7 @@ impl Component for Calculator {
                 </div>
                 <button class="wide-button" onclick={ctx.link().callback(|_| Msg::ToggleNumber)}>
                     {
-                        if &self.set_number_1 { "1" }
+                        if self.set_number_1 { "1" }
                         else { "2" }
                     }
                 </button>

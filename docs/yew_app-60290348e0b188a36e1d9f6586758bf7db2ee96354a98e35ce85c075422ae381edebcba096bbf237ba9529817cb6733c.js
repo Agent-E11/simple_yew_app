@@ -207,7 +207,7 @@ function addBorrowedObject(obj) {
 }
 function __wbg_adapter_20(arg0, arg1, arg2) {
     try {
-        wasm._dyn_core__ops__function__Fn___A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h217927c0e45eeed6(arg0, arg1, addBorrowedObject(arg2));
+        wasm._dyn_core__ops__function__Fn___A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h9ccc214be567fef1(arg0, arg1, addBorrowedObject(arg2));
     } finally {
         heap[stack_pointer++] = undefined;
     }
@@ -238,7 +238,7 @@ function makeMutClosure(arg0, arg1, dtor, f) {
     return real;
 }
 function __wbg_adapter_23(arg0, arg1, arg2) {
-    wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h299a42f61d156628(arg0, arg1, addHeapObject(arg2));
+    wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h6d1a91481000df02(arg0, arg1, addHeapObject(arg2));
 }
 
 function isLikeNone(x) {
@@ -623,12 +623,12 @@ function __wbg_get_imports() {
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbindgen_closure_wrapper890 = function(arg0, arg1, arg2) {
-        const ret = makeClosure(arg0, arg1, 89, __wbg_adapter_20);
+    imports.wbg.__wbindgen_closure_wrapper2103 = function(arg0, arg1, arg2) {
+        const ret = makeClosure(arg0, arg1, 198, __wbg_adapter_20);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper3213 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 276, __wbg_adapter_23);
+    imports.wbg.__wbindgen_closure_wrapper3195 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 275, __wbg_adapter_23);
         return addHeapObject(ret);
     };
 
@@ -670,7 +670,7 @@ async function __wbg_init(input) {
     if (wasm !== undefined) return wasm;
 
     if (typeof input === 'undefined') {
-        input = new URL('yew_app-f2661f867b763058a5eb8c3c0c08913e718d99e6bdeac5b244efb414efd431576d6599b4e4bd427957f73928b3861ce8_bg.wasm', import.meta.url);
+        input = new URL('yew_app-60290348e0b188a36e1d9f6586758bf7db2ee96354a98e35ce85c075422ae381edebcba096bbf237ba9529817cb6733c_bg.wasm', import.meta.url);
     }
     const imports = __wbg_get_imports();
 
