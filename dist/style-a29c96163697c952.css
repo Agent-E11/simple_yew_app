@@ -1,0 +1,13 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.small-button {
+    height: 3em;
+    width: 3em;
+}
+.wide-button {
+    height: 3em;
+    width: 6em;
+}
