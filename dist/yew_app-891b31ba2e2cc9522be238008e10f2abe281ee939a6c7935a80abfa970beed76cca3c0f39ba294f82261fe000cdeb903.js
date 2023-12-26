@@ -623,12 +623,12 @@ function __wbg_get_imports() {
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbindgen_closure_wrapper751 = function(arg0, arg1, arg2) {
-        const ret = makeClosure(arg0, arg1, 42, __wbg_adapter_20);
+    imports.wbg.__wbindgen_closure_wrapper840 = function(arg0, arg1, arg2) {
+        const ret = makeClosure(arg0, arg1, 71, __wbg_adapter_20);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper3074 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 232, __wbg_adapter_23);
+    imports.wbg.__wbindgen_closure_wrapper3163 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 258, __wbg_adapter_23);
         return addHeapObject(ret);
     };
 
@@ -670,7 +670,7 @@ async function __wbg_init(input) {
     if (wasm !== undefined) return wasm;
 
     if (typeof input === 'undefined') {
-        input = new URL('yew_app-d5ca1f02032d5a052bed9768fadcf0cc524eafe286b1d424397bbeaccf6df00228cf5e5fb7dd18c863ce4b52ff9e426e_bg.wasm', import.meta.url);
+        input = new URL('yew_app-891b31ba2e2cc9522be238008e10f2abe281ee939a6c7935a80abfa970beed76cca3c0f39ba294f82261fe000cdeb903_bg.wasm', import.meta.url);
     }
     const imports = __wbg_get_imports();
 
