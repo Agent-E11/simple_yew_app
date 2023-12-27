@@ -27,7 +27,7 @@ jobs:
 
     - name: run trunk
       # If you want to serve this as your main github page, remove public url 
-      run: trunk build --release --public-url='/${{ github.repository }}/'
+      run: trunk build --release #--public-url='/${{ github.repository }}/'
 
     - name: GitHub Pages action
       uses: peaceiris/actions-gh-pages@v3.7.3
@@ -37,4 +37,4 @@ jobs:
         publish_dir: ./docs
         force_orphan: true
         # if you are serving at a custom URL, add a cname
-        # cname: my.domain
+        cname: yew.eamonburns.com
