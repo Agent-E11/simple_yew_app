@@ -1,5 +1,6 @@
 * {
-    font-family: monospace arial;
+    font-family: monospace, arial;
+    font-size: 1em;
     margin: 0;
     padding: 0;
 }
