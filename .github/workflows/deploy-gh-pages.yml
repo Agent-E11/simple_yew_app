@@ -16,11 +16,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     
-    - name: Select Rust toolchain
-      uses: actions-rs/toolchain@v1.0.6
-      with:
-        toolchain: stable
-        target: wasm32-unknown-unknown
+    # - name: Select Rust toolchain
+    #   uses: actions-rs/toolchain@v1.0.6
+    #   with:
+    #     toolchain: stable
+    #     target: wasm32-unknown-unknown
+
+    # Rust toolchain is configured by rust-toolchain.toml
     
     - name: Install Trunk
       uses: jetli/trunk-action@v0.4.0
