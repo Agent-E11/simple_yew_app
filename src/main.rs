@@ -1,3 +1,4 @@
+// TODO: Add keyboard support
 use yew::{html, Html, Component, Context};
 
 pub enum Msg {
@@ -5,6 +6,8 @@ pub enum Msg {
     ClickNumber(f32),
     ClickOperator(Operator),
     Backspace,
+    Clear,
+    // TODO: Add "LoadFromHistory(index)"
 }
 pub enum Operator {
     Mul,
@@ -24,64 +27,104 @@ impl std::fmt::Display for Operator {
 }
 
 pub struct Calculator {
-    result: f32,
+    result: String,
     number_1: String,
     number_2: String,
     operator: Operator,
     set_number_1: bool,
-    history: Vec<f32>,
+    fragile_input: bool,
+    history: Vec<(f32, Operator, f32, f32)>,
+}
+impl Calculator {
+    pub fn calculate(&mut self) {
+        // TODO: Add calculation to history
+        let num_1: f32 = self.number_1.parse().unwrap();
+        let num_2: f32 = self.number_2.parse().unwrap();
+        let res = match self.operator {
+            Operator::Mul => num_1 * num_2,
+            Operator::Div => num_1 / num_2,
+            Operator::Add => num_1 + num_2,
+            Operator::Sub => num_1 - num_2,
+        };
+        if res.is_nan() || res.is_infinite() {
+            self.result = "Error".to_string();
+            self.number_1 = "0".to_string();
+        } else {
+            self.result = res.to_string();
+            self.number_1 = res.to_string();
+        }
+        self.set_number_1 = true;
+        self.fragile_input = true;
+    }
 }
 
 impl Component for Calculator {
     type Message = Msg;
     type Properties = ();
     
-    fn create(ctx: &Context<Self>) -> Self {
-        Self { result: 0., number_1: 0.0.to_string(), number_2: 0.0.to_string(), operator: Operator::Add, set_number_1: true, history: vec![] }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            result: "0".to_string(),
+            number_1: 0.0.to_string(),
+            number_2: 0.0.to_string(),
+            operator: Operator::Add,
+            set_number_1: true,
+            fragile_input: false,
+            history: vec![]
+        }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::Calculate => {
-                let res = match self.operator {
-                    Operator::Mul => self.number_1.parse::<f32>().unwrap() * self.number_2.parse::<f32>().unwrap(),
-                    Operator::Div => self.number_1.parse::<f32>().unwrap() / self.number_2.parse::<f32>().unwrap(),
-                    Operator::Add => self.number_1.parse::<f32>().unwrap() + self.number_2.parse::<f32>().unwrap(),
-                    Operator::Sub => self.number_1.parse::<f32>().unwrap() - self.number_2.parse::<f32>().unwrap(),
-                };
-                self.result = res;
-                self.number_1 = res.to_string();
-                self.set_number_1 = true;
-            },
-            Msg::ClickNumber(n) => if self.set_number_1 {
-                if self.number_1.parse::<f32>().unwrap() == 0. {
-                    self.number_1 = n.to_string();
+            Msg::Calculate => self.calculate(),
+            Msg::ClickNumber(n) => {
+                if self.set_number_1 {
+                    if self.number_1.parse::<f32>().unwrap() == 0. || self.fragile_input {
+                        self.number_1 = n.to_string();
+                    } else {
+                        self.number_1.push_str(&n.to_string());
+                    }
+                    self.number_2 = "0".to_string();
+                    self.operator = Operator::Add;
+                } else if self.number_2.parse::<f32>().unwrap() == 0. {
+                    self.number_2 = n.to_string();
                 } else {
-                    self.number_1.push_str(&n.to_string());
+                    self.number_2.push_str(&n.to_string());
                 }
-            } else if self.number_2.parse::<f32>().unwrap() == 0. {
-                self.number_2 = n.to_string();
-            } else {
-                self.number_2.push_str(&n.to_string());
+                self.fragile_input = false;
             },
+
             Msg::ClickOperator(o) => {
-                self.operator = o;
-                self.number_2 = "0".to_string();
-                self.set_number_1 = false;
-            },
-            Msg::Backspace => if self.set_number_1 {
-                if self.number_1.len() <= 1 {
-                    self.number_1 = "0".to_string();
-                } else {
-                    self.number_1.pop();
+                if !self.fragile_input && !self.set_number_1 {
+                    self.calculate()
                 }
-            } else if self.number_2.parse::<f32>().unwrap() == 0. {
-                self.set_number_1 = true;
-            } else if self.number_2.len() <= 1 {
                 self.number_2 = "0".to_string();
-            } else {
-                self.number_2.pop();
+                self.operator = o;
+                self.set_number_1 = false;
+                self.fragile_input = true;
             },
+            Msg::Backspace => {
+                if self.set_number_1 {
+                    if self.number_1.len() <= 1 || self.fragile_input {
+                        self.number_1 = "0".to_string();
+                    } else {
+                        self.number_1.pop();
+                    }
+                } else if self.number_2.parse::<f32>().unwrap() == 0. {
+                    self.set_number_1 = true;
+                } else if self.number_2.len() <= 1 {
+                    self.number_2 = "0".to_string();
+                } else {
+                    self.number_2.pop();
+                }
+                self.fragile_input = false;
+            },
+            Msg::Clear => { // Reset
+                self.number_1 = "0".to_string();
+                self.number_2 = "0".to_string();
+                self.set_number_1 = true;
+                self.fragile_input = false;
+            }
         }
         true
     }
@@ -92,6 +135,9 @@ impl Component for Calculator {
                 <div class="text-box">
                     <p>{ &self.number_1 }{ if !self.set_number_1 { self.operator.to_string() + &self.number_2 } else { "".to_string() } }</p>
                 </div>
+                <p class="result">
+                    { &self.result }
+                </p>
                 <div class="number-buttons">
                     <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(1.))}>
                         { "1" }
@@ -143,11 +189,10 @@ impl Component for Calculator {
                     <button class="wide-button" onclick={ctx.link().callback(|_| Msg::Backspace)}>
                         { "Backspace" }
                     </button>
+                    <button class="wide-button" onclick={ctx.link().callback(|_| Msg::Clear)}>
+                        { "Clear" }
+                    </button>
                 </div>
-
-                <p class="result">
-                    { self.result }
-                </p>
             </div>
         }
     }
