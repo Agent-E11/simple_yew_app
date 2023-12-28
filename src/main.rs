@@ -2,9 +2,9 @@ use yew::{html, Html, Component, Context};
 
 pub enum Msg {
     Calculate,
-    SetNumber(bool, f32),
-    SetOperator(Operator),
-    ToggleNumber,
+    ClickNumber(f32),
+    ClickOperator(Operator),
+    Backspace,
 }
 pub enum Operator {
     Mul,
@@ -25,8 +25,8 @@ impl std::fmt::Display for Operator {
 
 pub struct Calculator {
     result: f32,
-    number_1: f32,
-    number_2: f32,
+    number_1: String,
+    number_2: String,
     operator: Operator,
     set_number_1: bool,
     history: Vec<f32>,
@@ -37,90 +37,115 @@ impl Component for Calculator {
     type Properties = ();
     
     fn create(ctx: &Context<Self>) -> Self {
-        Self { result: 0., number_1: 0., number_2: 0., operator: Operator::Add, set_number_1: true, history: vec![] }
+        Self { result: 0., number_1: 0.0.to_string(), number_2: 0.0.to_string(), operator: Operator::Add, set_number_1: true, history: vec![] }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Calculate => {
                 let res = match self.operator {
-                    Operator::Mul => self.number_1 * self.number_2,
-                    Operator::Div => self.number_1 / self.number_2,
-                    Operator::Add => self.number_1 + self.number_2,
-                    Operator::Sub => self.number_1 - self.number_2,
+                    Operator::Mul => self.number_1.parse::<f32>().unwrap() * self.number_2.parse::<f32>().unwrap(),
+                    Operator::Div => self.number_1.parse::<f32>().unwrap() / self.number_2.parse::<f32>().unwrap(),
+                    Operator::Add => self.number_1.parse::<f32>().unwrap() + self.number_2.parse::<f32>().unwrap(),
+                    Operator::Sub => self.number_1.parse::<f32>().unwrap() - self.number_2.parse::<f32>().unwrap(),
                 };
                 self.result = res;
-                self.number_1 = res;
+                self.number_1 = res.to_string();
+                self.set_number_1 = true;
             },
-            Msg::SetNumber(set_1, n) => if set_1 { self.number_1 = n } else { self.number_2 = n},
-            Msg::SetOperator(o) => self.operator = o,
-            Msg::ToggleNumber => self.set_number_1 = !self.set_number_1,
+            Msg::ClickNumber(n) => if self.set_number_1 {
+                if self.number_1.parse::<f32>().unwrap() == 0. {
+                    self.number_1 = n.to_string();
+                } else {
+                    self.number_1.push_str(&n.to_string());
+                }
+            } else if self.number_2.parse::<f32>().unwrap() == 0. {
+                self.number_2 = n.to_string();
+            } else {
+                self.number_2.push_str(&n.to_string());
+            },
+            Msg::ClickOperator(o) => {
+                self.operator = o;
+                self.number_2 = "0".to_string();
+                self.set_number_1 = false;
+            },
+            Msg::Backspace => if self.set_number_1 {
+                if self.number_1.len() <= 1 {
+                    self.number_1 = "0".to_string();
+                } else {
+                    self.number_1.pop();
+                }
+            } else if self.number_2.parse::<f32>().unwrap() == 0. {
+                self.set_number_1 = true;
+            } else if self.number_2.len() <= 1 {
+                self.number_2 = "0".to_string();
+            } else {
+                self.number_2.pop();
+            },
         }
         true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let set_1 = self.set_number_1;
         html! {
             <div>
-                <p>{ self.number_1 }{ &self.operator }{ self.number_2 }</p>
-                <div>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 1.))}>
+                <div class="text-box">
+                    <p>{ &self.number_1 }{ if !self.set_number_1 { self.operator.to_string() + &self.number_2 } else { "".to_string() } }</p>
+                </div>
+                <div class="number-buttons">
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(1.))}>
                         { "1" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 2.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(2.))}>
                         { "2" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 3.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(3.))}>
                         { "3" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetOperator(Operator::Mul))}>
-                        { "*" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetOperator(Operator::Div))}>
-                        { "/" }
-                    </button>
-
-                </div>
-                <div>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 4.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(4.))}>
                         { "4" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 5.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(5.))}>
                         { "5" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 6.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(6.))}>
                         { "6" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetOperator(Operator::Add))}>
-                        { "+" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::SetOperator(Operator::Sub))}>
-                        { "-" }
-                    </button>
-                </div>
-                <div>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 7.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(7.))}>
                         { "7" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 8.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(8.))}>
                         { "8" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::SetNumber(set_1, 9.))}>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(9.))}>
                         { "9" }
+                    </button>
+                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(0.))}>
+                        { "0" }
+                    </button>
+                </div>
+                <div class="operator-buttons">
+                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Mul))}>
+                        { "*" }
+                    </button>
+                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Div))}>
+                        { "/" }
+                    </button>
+                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Add))}>
+                        { "+" }
+                    </button>
+                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Sub))}>
+                        { "-" }
                     </button>
                     <button class="wide-button" onclick={ctx.link().callback(|_| Msg::Calculate)}>
                         { "=" }
                     </button>
+                    <button class="wide-button" onclick={ctx.link().callback(|_| Msg::Backspace)}>
+                        { "Backspace" }
+                    </button>
                 </div>
-                <button class="wide-button" onclick={ctx.link().callback(|_| Msg::ToggleNumber)}>
-                    {
-                        if self.set_number_1 { "1" }
-                        else { "2" }
-                    }
-                </button>
 
-                <p class="counter">
+                <p class="result">
                     { self.result }
                 </p>
             </div>
