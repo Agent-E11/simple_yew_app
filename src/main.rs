@@ -7,8 +7,9 @@ pub enum Msg {
     ClickOperator(Operator),
     Backspace,
     Clear,
-    // TODO: Add "LoadFromHistory(index)"
+    LoadFromHistory(usize),
 }
+#[derive(Clone, Copy)]
 pub enum Operator {
     Mul,
     Div,
@@ -37,7 +38,6 @@ pub struct Calculator {
 }
 impl Calculator {
     pub fn calculate(&mut self) {
-        // TODO: Add calculation to history
         let num_1: f32 = self.number_1.parse().unwrap();
         let num_2: f32 = self.number_2.parse().unwrap();
         let res = match self.operator {
@@ -46,6 +46,9 @@ impl Calculator {
             Operator::Add => num_1 + num_2,
             Operator::Sub => num_1 - num_2,
         };
+
+        self.history.push((num_1, self.operator, num_2, res));
+
         if res.is_nan() || res.is_infinite() {
             self.result = "Error".to_string();
             self.number_1 = "0".to_string();
@@ -124,6 +127,20 @@ impl Component for Calculator {
                 self.number_2 = "0".to_string();
                 self.set_number_1 = true;
                 self.fragile_input = false;
+            },
+            Msg::LoadFromHistory(i) => {
+                match self.history.get(i) {
+                    None => (),
+                    Some(calc) => {
+                        self.number_1 = calc.0.to_string();
+                        self.operator = calc.1;
+                        self.number_2 = calc.2.to_string();
+                        self.result = calc.3.to_string();
+
+                        self.set_number_1 = false;
+                        self.fragile_input = false;
+                    }
+                }
             }
         }
         true
@@ -133,7 +150,16 @@ impl Component for Calculator {
         html! {
             <div>
                 <div class="text-box">
-                    <p>{ &self.number_1 }{ if !self.set_number_1 { self.operator.to_string() + &self.number_2 } else { "".to_string() } }</p>
+                    <p>
+                        { &self.number_1 }
+                        {
+                            if !self.set_number_1 {
+                                self.operator.to_string() + &self.number_2
+                            } else {
+                                "".to_string()
+                            }
+                        }
+                    </p>
                 </div>
                 <p class="result">
                     { &self.result }
@@ -192,6 +218,19 @@ impl Component for Calculator {
                     <button class="wide-button" onclick={ctx.link().callback(|_| Msg::Clear)}>
                         { "Clear" }
                     </button>
+                </div>
+                <div>
+                    <h1>{ "History" }</h1>
+                    {
+                        self.history.iter().enumerate().map(|index_calculation| {
+                            let (i, c) = index_calculation;
+                            html! {
+                                <p onclick={ctx.link().callback(move |_| Msg::LoadFromHistory(i))}>
+                                    { c.0 }{ c.1 }{ c.2 }{ " = " }{ c.3 }
+                                </p>
+                            }
+                        }).collect::<Html>()
+                    }
                 </div>
             </div>
         }
