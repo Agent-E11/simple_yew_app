@@ -1,10 +1,18 @@
 // TODO: Add keyboard support
-use yew::{html, Html, Component, Context};
+use yew::{
+    html,
+    classes,
+    BaseComponent,
+    Component,
+    Context,
+    Html,
+};
 
 pub enum Msg {
     Calculate,
     ClickNumber(f32),
     ClickOperator(Operator),
+    ClickDot,
     Backspace,
     Clear,
     LoadFromHistory(usize),
@@ -24,6 +32,20 @@ impl std::fmt::Display for Operator {
             Self::Add => write!(f, " + "),
             Self::Sub => write!(f, " - "),
         }
+    }
+}
+
+fn number_button<COMP>(num: f32, ctx: &Context<COMP>) -> Html 
+where
+    COMP: BaseComponent,
+    <COMP as yew::BaseComponent>::Message: std::convert::From<Msg>,
+{
+    html! {
+        <button
+            class={classes!("bg-slate-400", "text-black", "font-bold", "py-2", "px-4", "h-20", "rounded")}
+            onclick={ctx.link().callback(move |_| Msg::ClickNumber(num))}>
+            { format!("{num}") }
+        </button>
     }
 }
 
@@ -96,7 +118,6 @@ impl Component for Calculator {
                 }
                 self.fragile_input = false;
             },
-
             Msg::ClickOperator(o) => {
                 if !self.fragile_input && !self.set_number_1 {
                     self.calculate()
@@ -105,6 +126,16 @@ impl Component for Calculator {
                 self.operator = o;
                 self.set_number_1 = false;
                 self.fragile_input = true;
+            },
+            Msg::ClickDot => { // FIXME: when the number equals 0 (like 0. or 0.0000), the whole number is replaced
+                if self.set_number_1 {
+                    if !self.number_1.contains('.') {
+                        self.number_1.push('.');
+                    }
+                } else if !self.number_2.contains('.') {
+                    self.number_2.push('.');
+                }
+                self.fragile_input = false;
             },
             Msg::Backspace => {
                 if self.set_number_1 {
@@ -148,8 +179,8 @@ impl Component for Calculator {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <div>
-                <div class="text-box">
+            <div class="mx-auto px-4 sm:container sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4">
+                <div>
                     <p>
                         { &self.number_1 }
                         {
@@ -161,62 +192,47 @@ impl Component for Calculator {
                         }
                     </p>
                 </div>
-                <p class="result">
+                <p>
                     { &self.result }
                 </p>
-                <div class="number-buttons">
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(1.))}>
-                        { "1" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(2.))}>
-                        { "2" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(3.))}>
-                        { "3" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(4.))}>
-                        { "4" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(5.))}>
-                        { "5" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(6.))}>
-                        { "6" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(7.))}>
-                        { "7" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(8.))}>
-                        { "8" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(9.))}>
-                        { "9" }
-                    </button>
-                    <button class="small-button" onclick={ctx.link().callback(move |_| Msg::ClickNumber(0.))}>
-                        { "0" }
+                <div class="grid grid-cols-3 gap-1"> // Button panel
+                    { number_button(1., ctx) }
+                    { number_button(2., ctx) }
+                    { number_button(3., ctx) }
+                    { number_button(4., ctx) }
+                    { number_button(5., ctx) }
+                    { number_button(6., ctx) }
+                    { number_button(7., ctx) }
+                    { number_button(8., ctx) }
+                    { number_button(9., ctx) }
+                    { number_button(0., ctx) }
+                    <button
+                        class={classes!("bg-slate-400", "text-black", "font-bold", "py-2", "px-4", "h-20", "rounded")}
+                        onclick={ctx.link().callback(move |_| Msg::ClickDot)}>
+                        { "." }
                     </button>
                 </div>
                 <div class="operator-buttons">
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Mul))}>
+                    <button onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Mul))}>
                         { "*" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Div))}>
+                    <button onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Div))}>
                         { "/" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Add))}>
+                    <button onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Add))}>
                         { "+" }
                     </button>
-                    <button class="small-button" onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Sub))}>
+                    <button onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Sub))}>
                         { "-" }
                     </button>
-                    <button class="wide-button" onclick={ctx.link().callback(|_| Msg::Calculate)}>
+                    <button onclick={ctx.link().callback(|_| Msg::Calculate)}>
                         { "=" }
                     </button>
-                    <button class="wide-button" onclick={ctx.link().callback(|_| Msg::Backspace)}>
-                        { "Backspace" }
+                    <button onclick={ctx.link().callback(|_| Msg::Backspace)}>
+                        { "\u{232b}" }
                     </button>
-                    <button class="wide-button" onclick={ctx.link().callback(|_| Msg::Clear)}>
-                        { "Clear" }
+                    <button onclick={ctx.link().callback(|_| Msg::Clear)}>
+                        { "C" }
                     </button>
                 </div>
                 <div>

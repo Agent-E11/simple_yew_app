@@ -1,15 +1,5 @@
-* {
-    font-family: monospace, arial;
-    font-size: 1em;
-    margin: 0;
-    padding: 0;
-}
+@tailwind base;
 
-.small-button {
-    height: 3em;
-    width: 3em;
-}
-.wide-button {
-    height: 3em;
-    width: 6em;
-}
+@tailwind components;
+
+@tailwind utilities;
