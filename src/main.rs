@@ -104,14 +104,14 @@ impl Component for Calculator {
             Msg::Calculate => self.calculate(),
             Msg::ClickNumber(n) => {
                 if self.set_number_1 {
-                    if self.number_1.parse::<f32>().unwrap() == 0. || self.fragile_input {
+                    if (self.number_1.parse::<f32>().unwrap() == 0. && !self.number_1.contains('.')) || self.fragile_input {
                         self.number_1 = n.to_string();
                     } else {
                         self.number_1.push_str(&n.to_string());
                     }
                     self.number_2 = "0".to_string();
                     self.operator = Operator::Add;
-                } else if self.number_2.parse::<f32>().unwrap() == 0. {
+                } else if self.number_2.parse::<f32>().unwrap() == 0. && !self.number_2.contains('.') {
                     self.number_2 = n.to_string();
                 } else {
                     self.number_2.push_str(&n.to_string());
