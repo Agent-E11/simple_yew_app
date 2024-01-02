@@ -1,4 +1,6 @@
 // TODO: Add keyboard support
+// TODO: Copy result to keyboard on click
+// TODO: Get better Backspace key icon
 use yew::{
     html,
     classes,
@@ -66,8 +68,8 @@ where
                         o.to_string().trim().to_string()
                     },
                     Msg::ClickDot => ".".to_string(),
-                    Msg::Backspace => "\u{232b}".to_string(),
-                    Msg::Clear => "C".to_string(),
+                    Msg::Backspace => "B".to_string(),
+                    Msg::Clear => "AC".to_string(),
                     _ => String::new(),
                 }
             }
@@ -206,52 +208,55 @@ impl Component for Calculator {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let no_styles = Classes::new();
         html! {
-            <div class={classes!("font-mono", "bg-slate-500", "mx-auto", "sm:mt-4", "p-4", "sm:rounded-lg", "sm:container", "sm:w-full", "md:w-1/2", "lg:w-1/3", "xl:w-1/4")}>
-                <div class={classes!()}>
-                    <p class={classes!("bg-slate-200", "rounded-t-lg", "p-1")}>
-                        { &self.number_1 }
-                        {
-                            if !self.set_number_1 {
-                                self.operator.to_string() + &self.number_2
-                            } else {
-                                "".to_string()
+            <div class={classes!("font-mono", "mx-auto", "sm:mt-4", "sm:container", "sm:w-full", "md:w-1/2", "lg:w-1/3", "xl:w-1/4")}>
+                <div class={classes!("bg-slate-500", "p-4", "sm:rounded-t-xl")}>
+                    <div>
+                        <p class={classes!("text-xl", "bg-slate-200", "rounded-t-lg", "p-1")}>
+                            { &self.number_1 }
+                            {
+                                if !self.set_number_1 {
+                                    self.operator.to_string() + &self.number_2
+                                } else {
+                                    "".to_string()
+                                }
                             }
-                        }
-                    </p>
-                    <p class={classes!("text-right", "bg-slate-200", "rounded-b-lg", "mb-3", "p-1")}>
-                        { "= " }{ &self.result }
-                    </p>
+                        </p>
+                        <p class={classes!("text-right", "bg-slate-200", "rounded-b-lg", "mb-3", "p-1")}>
+                            { "= " }{ &self.result }
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-5 gap-3"> // Button panel
+                        { number_button(1., no_styles.clone(), ctx) }
+                        { number_button(2., no_styles.clone(), ctx) }
+                        { number_button(3., no_styles.clone(), ctx) }
+                        { button(Msg::Backspace, Classes::from("bg-slate-600"), ctx) }
+                        { button(Msg::Clear, Classes::from("bg-slate-600"), ctx) }
+
+                        { number_button(4., no_styles.clone(), ctx) }
+                        { number_button(5., no_styles.clone(), ctx) }
+                        { number_button(6., no_styles.clone(), ctx) }
+                        { button(Msg::ClickOperator(Operator::Mul), Classes::from("bg-slate-600"), ctx) }
+                        { button(Msg::ClickOperator(Operator::Div), Classes::from("bg-slate-600"), ctx) }
+
+                        { number_button(7., no_styles.clone(), ctx) }
+                        { number_button(8., no_styles.clone(), ctx) }
+                        { number_button(9., no_styles.clone(), ctx) }
+                        { button(Msg::ClickOperator(Operator::Add), Classes::from("bg-slate-600"), ctx) }
+                        { button(Msg::ClickOperator(Operator::Sub), Classes::from("bg-slate-600"), ctx) }
+
+                        { number_button(0., Classes::from("col-span-2"), ctx) }
+                        { button(Msg::ClickDot, no_styles.clone(), ctx) }
+                        { button(Msg::Calculate, Classes::from("col-span-2 bg-slate-600"), ctx) }
+                    </div>
                 </div>
-                <div class="grid grid-cols-5 gap-3"> // Button panel
-                    { number_button(1., no_styles.clone(), ctx) }
-                    { number_button(2., no_styles.clone(), ctx) }
-                    { number_button(3., no_styles.clone(), ctx) }
-                    { button(Msg::Backspace, Classes::from("bg-slate-600"), ctx) }
-                    { button(Msg::Clear, Classes::from("bg-slate-600"), ctx) }
-
-                    { number_button(4., no_styles.clone(), ctx) }
-                    { number_button(5., no_styles.clone(), ctx) }
-                    { number_button(6., no_styles.clone(), ctx) }
-                    { button(Msg::ClickOperator(Operator::Mul), Classes::from("bg-slate-600"), ctx) }
-                    { button(Msg::ClickOperator(Operator::Div), Classes::from("bg-slate-600"), ctx) }
-
-                    { number_button(7., no_styles.clone(), ctx) }
-                    { number_button(8., no_styles.clone(), ctx) }
-                    { number_button(9., no_styles.clone(), ctx) }
-                    { button(Msg::ClickOperator(Operator::Add), Classes::from("bg-slate-600"), ctx) }
-                    { button(Msg::ClickOperator(Operator::Sub), Classes::from("bg-slate-600"), ctx) }
-
-                    { number_button(0., Classes::from("col-span-2"), ctx) }
-                    { button(Msg::ClickDot, no_styles.clone(), ctx) }
-                    { button(Msg::Calculate, Classes::from("col-span-2 bg-slate-600"), ctx) }
-                </div>
-                <div>
-                    <h1>{ "History" }</h1>
+                <div class={classes!("bg-slate-200", "p-4", "sm:rounded-b-xl")}>
+                    <h1 class={classes!("text-xl")}>{ "History" }</h1>
                     {
                         self.history.iter().enumerate().map(|index_calculation| {
                             let (i, c) = index_calculation;
                             html! {
-                                <p onclick={ctx.link().callback(move |_| Msg::LoadFromHistory(i))}>
+                                <p class={classes!("cursor-pointer", "w-max", "text-black/60", "hover:text-black")}
+                                    onclick={ctx.link().callback(move |_| Msg::LoadFromHistory(i))}>
                                     { c.0 }{ c.1 }{ c.2 }{ " = " }{ c.3 }
                                 </p>
                             }
