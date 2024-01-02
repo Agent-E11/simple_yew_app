@@ -35,4 +35,4 @@ jobs:
         publish_branch: gh-pages
         publish_dir: ./docs # Source
         force_orphan: true
-        cname: yew.eamonburns.com
+        cname: calculator.eamonburns.com
