@@ -6,8 +6,10 @@ use yew::{
     Component,
     Context,
     Html,
+    Classes,
 };
 
+#[derive(Clone, Copy)]
 pub enum Msg {
     Calculate,
     ClickNumber(f32),
@@ -35,16 +37,40 @@ impl std::fmt::Display for Operator {
     }
 }
 
-fn number_button<COMP>(num: f32, ctx: &Context<COMP>) -> Html 
+fn number_button<COMP>(num: f32, styles: Classes, ctx: &Context<COMP>) -> Html 
 where
     COMP: BaseComponent,
     <COMP as yew::BaseComponent>::Message: std::convert::From<Msg>,
 {
     html! {
         <button
-            class={classes!("bg-slate-400", "text-black", "font-bold", "py-2", "px-4", "h-20", "rounded")}
+            class={classes!("bg-slate-400", "text-black", "font-bold", "py-2", "px-4", "h-20", "rounded", styles)}
             onclick={ctx.link().callback(move |_| Msg::ClickNumber(num))}>
             { format!("{num}") }
+        </button>
+    }
+}
+
+fn button<COMP>(msg: Msg, styles: Classes, ctx: &Context<COMP>) -> Html
+where
+    COMP: BaseComponent,
+    <COMP as yew::BaseComponent>::Message: std::convert::From<Msg>,
+{
+    html! {
+        <button class={classes!("bg-slate-400", "text-black", "font-bold", "py-2", "px-4", "h-20", "rounded", styles)}
+            onclick={ctx.link().callback(move |_| msg)}>
+            {
+                match msg {
+                    Msg::Calculate => "=".to_string(),
+                    Msg::ClickOperator(o) => {
+                        o.to_string().trim().to_string()
+                    },
+                    Msg::ClickDot => ".".to_string(),
+                    Msg::Backspace => "\u{232b}".to_string(),
+                    Msg::Clear => "C".to_string(),
+                    _ => String::new(),
+                }
+            }
         </button>
     }
 }
@@ -127,7 +153,7 @@ impl Component for Calculator {
                 self.set_number_1 = false;
                 self.fragile_input = true;
             },
-            Msg::ClickDot => { // FIXME: when the number equals 0 (like 0. or 0.0000), the whole number is replaced
+            Msg::ClickDot => {
                 if self.set_number_1 {
                     if !self.number_1.contains('.') {
                         self.number_1.push('.');
@@ -178,10 +204,11 @@ impl Component for Calculator {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let no_styles = Classes::new();
         html! {
-            <div class="mx-auto px-4 sm:container sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4">
-                <div>
-                    <p>
+            <div class={classes!("font-mono", "bg-slate-500", "mx-auto", "sm:mt-4", "p-4", "sm:rounded-lg", "sm:container", "sm:w-full", "md:w-1/2", "lg:w-1/3", "xl:w-1/4")}>
+                <div class={classes!()}>
+                    <p class={classes!("bg-slate-200", "rounded-t-lg", "p-1")}>
                         { &self.number_1 }
                         {
                             if !self.set_number_1 {
@@ -191,49 +218,32 @@ impl Component for Calculator {
                             }
                         }
                     </p>
+                    <p class={classes!("text-right", "bg-slate-200", "rounded-b-lg", "mb-3", "p-1")}>
+                        { "= " }{ &self.result }
+                    </p>
                 </div>
-                <p>
-                    { &self.result }
-                </p>
-                <div class="grid grid-cols-3 gap-1"> // Button panel
-                    { number_button(1., ctx) }
-                    { number_button(2., ctx) }
-                    { number_button(3., ctx) }
-                    { number_button(4., ctx) }
-                    { number_button(5., ctx) }
-                    { number_button(6., ctx) }
-                    { number_button(7., ctx) }
-                    { number_button(8., ctx) }
-                    { number_button(9., ctx) }
-                    { number_button(0., ctx) }
-                    <button
-                        class={classes!("bg-slate-400", "text-black", "font-bold", "py-2", "px-4", "h-20", "rounded")}
-                        onclick={ctx.link().callback(move |_| Msg::ClickDot)}>
-                        { "." }
-                    </button>
-                </div>
-                <div class="operator-buttons">
-                    <button onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Mul))}>
-                        { "*" }
-                    </button>
-                    <button onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Div))}>
-                        { "/" }
-                    </button>
-                    <button onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Add))}>
-                        { "+" }
-                    </button>
-                    <button onclick={ctx.link().callback(|_| Msg::ClickOperator(Operator::Sub))}>
-                        { "-" }
-                    </button>
-                    <button onclick={ctx.link().callback(|_| Msg::Calculate)}>
-                        { "=" }
-                    </button>
-                    <button onclick={ctx.link().callback(|_| Msg::Backspace)}>
-                        { "\u{232b}" }
-                    </button>
-                    <button onclick={ctx.link().callback(|_| Msg::Clear)}>
-                        { "C" }
-                    </button>
+                <div class="grid grid-cols-5 gap-3"> // Button panel
+                    { number_button(1., no_styles.clone(), ctx) }
+                    { number_button(2., no_styles.clone(), ctx) }
+                    { number_button(3., no_styles.clone(), ctx) }
+                    { button(Msg::Backspace, Classes::from("bg-slate-600"), ctx) }
+                    { button(Msg::Clear, Classes::from("bg-slate-600"), ctx) }
+
+                    { number_button(4., no_styles.clone(), ctx) }
+                    { number_button(5., no_styles.clone(), ctx) }
+                    { number_button(6., no_styles.clone(), ctx) }
+                    { button(Msg::ClickOperator(Operator::Mul), Classes::from("bg-slate-600"), ctx) }
+                    { button(Msg::ClickOperator(Operator::Div), Classes::from("bg-slate-600"), ctx) }
+
+                    { number_button(7., no_styles.clone(), ctx) }
+                    { number_button(8., no_styles.clone(), ctx) }
+                    { number_button(9., no_styles.clone(), ctx) }
+                    { button(Msg::ClickOperator(Operator::Add), Classes::from("bg-slate-600"), ctx) }
+                    { button(Msg::ClickOperator(Operator::Sub), Classes::from("bg-slate-600"), ctx) }
+
+                    { number_button(0., Classes::from("col-span-2"), ctx) }
+                    { button(Msg::ClickDot, no_styles.clone(), ctx) }
+                    { button(Msg::Calculate, Classes::from("col-span-2 bg-slate-600"), ctx) }
                 </div>
                 <div>
                     <h1>{ "History" }</h1>
