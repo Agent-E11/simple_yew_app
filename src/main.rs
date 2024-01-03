@@ -1,5 +1,4 @@
 // TODO: Add keyboard support
-// TODO: Copy result to keyboard on click
 // TODO: Get better Backspace key icon
 use yew::{
     html,
@@ -9,7 +8,11 @@ use yew::{
     Context,
     Html,
     Classes,
+    function_component,
+    Callback,
+    Properties,
 };
+use yew_hooks::use_clipboard;
 
 #[derive(Clone, Copy)]
 pub enum Msg {
@@ -21,7 +24,7 @@ pub enum Msg {
     Clear,
     LoadFromHistory(usize),
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Operator {
     Mul,
     Div,
@@ -74,6 +77,44 @@ where
                 }
             }
         </button>
+    }
+}
+
+#[derive(Properties, PartialEq)]
+struct DisplayProps {
+    calculation: (String, Operator, String, String),
+    set_number_1: bool,
+}
+
+#[function_component]
+fn CalculatorDisplay(props: &DisplayProps) -> Html {
+    let clipboard = use_clipboard();
+    let calculation = &props.calculation;
+    let onclick = {
+        let clipboard = clipboard.clone();
+        let res = calculation.3.clone();
+        Callback::from(move |_| {
+            clipboard.write_text(res.to_string());
+        })
+    };
+
+    html! {
+        <>
+            <p class={classes!("text-xl", "bg-slate-200", "rounded-t-lg", "p-1")}>
+                { &calculation.0 }
+                {
+                    if !props.set_number_1 {
+                        calculation.1.to_string() + &calculation.2
+                    } else {
+                        "".to_string()
+                    }
+                }
+            </p>
+            <p class={classes!("text-right", "bg-slate-200", "rounded-b-lg", "mb-3", "p-1", "hover:cursor-pointer", "hover:text-green-800")} // Replace with function component
+                {onclick}>
+                { "= " }{ &calculation.3 }
+            </p>
+        </>
     }
 }
 
@@ -207,23 +248,18 @@ impl Component for Calculator {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let no_styles = Classes::new();
+        let calculation = (
+            self.number_1.clone(),
+            self.operator,
+            self.number_2.clone(),
+            self.result.clone(),
+        );
+        let set_number_1 = self.set_number_1;
         html! {
             <div class={classes!("font-mono", "mx-auto", "sm:mt-4", "sm:container", "sm:w-full", "md:w-1/2", "lg:w-1/3", "xl:w-1/4")}>
                 <div class={classes!("bg-slate-500", "p-4", "sm:rounded-t-xl")}>
                     <div>
-                        <p class={classes!("text-xl", "bg-slate-200", "rounded-t-lg", "p-1")}>
-                            { &self.number_1 }
-                            {
-                                if !self.set_number_1 {
-                                    self.operator.to_string() + &self.number_2
-                                } else {
-                                    "".to_string()
-                                }
-                            }
-                        </p>
-                        <p class={classes!("text-right", "bg-slate-200", "rounded-b-lg", "mb-3", "p-1")}>
-                            { "= " }{ &self.result }
-                        </p>
+                        <CalculatorDisplay {calculation} {set_number_1} />
                     </div>
                     <div class="grid grid-cols-5 gap-3"> // Button panel
                         { number_button(1., no_styles.clone(), ctx) }
