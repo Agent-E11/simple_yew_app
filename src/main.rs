@@ -9,7 +9,11 @@ use yew::{
     Context,
     Html,
     Classes,
+    KeyboardEvent,
 };
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
+use gloo_events::EventListener;
+use gloo_utils::window;
 
 #[derive(Clone, Copy)]
 pub enum Msg {
@@ -85,6 +89,7 @@ pub struct Calculator {
     set_number_1: bool,
     fragile_input: bool,
     history: Vec<(f32, Operator, f32, f32)>,
+    _keydown_listener: EventListener,
 }
 impl Calculator {
     pub fn calculate(&mut self) {
@@ -116,6 +121,11 @@ impl Component for Calculator {
     type Properties = ();
     
     fn create(_ctx: &Context<Self>) -> Self {
+        let listener = EventListener::new(&window(), "keydown", |event| {
+            let _event: &KeyboardEvent = event.dyn_ref::<KeyboardEvent>().unwrap_throw();
+            
+            // TODO: process event and update self with corresponding message
+        });
         Self {
             result: "0".to_string(),
             number_1: 0.0.to_string(),
@@ -123,7 +133,8 @@ impl Component for Calculator {
             operator: Operator::Add,
             set_number_1: true,
             fragile_input: false,
-            history: vec![]
+            history: vec![],
+            _keydown_listener: listener,
         }
     }
 

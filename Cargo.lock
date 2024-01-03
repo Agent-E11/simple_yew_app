@@ -1148,5 +1148,9 @@ dependencies = [
 name = "yew_app"
 version = "0.1.0"
 dependencies = [
+ "gloo-dialogs 0.2.0",
+ "gloo-events 0.2.0",
+ "gloo-utils 0.2.0",
+ "wasm-bindgen",
  "yew",
 ]
