@@ -161,11 +161,54 @@ impl Component for Calculator {
     type Message = Msg;
     type Properties = ();
     
-    fn create(_ctx: &Context<Self>) -> Self {
-        let listener = EventListener::new(&window(), "keydown", |event| {
-            let _event: &KeyboardEvent = event.dyn_ref::<KeyboardEvent>().unwrap_throw();
+    fn create(ctx: &Context<Self>) -> Self {
+        let listener = EventListener::new(&window(), "keydown", {
+            let link = ctx.link().clone();
+            move |event| {
+                let event: &KeyboardEvent = event.dyn_ref::<KeyboardEvent>().unwrap_throw();
             
-            // TODO: process event and update self with corresponding message
+                let msg = match event {
+                    k if (48..=57).contains(&k.key_code()) && !k.shift_key() => { // Check if numeric (top row) and no shift key
+                        let n = (k.key_code() - 48) as f32; // Convert code to numeric value
+                        Some(Msg::ClickNumber(n))
+                    },
+                    k if (96..=105).contains(&k.key_code()) => { // Check if numeric (num pad)
+                        let n = (k.key_code() - 96) as f32; // Convert code to numeric value
+                        Some(Msg::ClickNumber(n))
+                    },
+                    // Multiply key
+                    o if o.key_code() == 106 // num pad
+                        || o.key_code() == 56 && o.shift_key() => { // top row (shift + 8)
+                        Some(Msg::ClickOperator(Operator::Mul))
+                    },
+                    // Divide key
+                    o if o.key_code() == 111 // num pad
+                        || o.key_code() == 191 && !o.shift_key() => { // slash (no shift)
+                        Some(Msg::ClickOperator(Operator::Div))
+                    },
+                    // Add key
+                    o if o.key_code() == 107 // num pad
+                        || o.key_code() == 187 && o.shift_key() => { // top row (shift + =)
+                        Some(Msg::ClickOperator(Operator::Add))
+                    },
+                    // Subtract key
+                    o if o.key_code() == 109 // num pad
+                        || o.key_code() == 189 && !o.shift_key() => { // minus (no shift)
+                        Some(Msg::ClickOperator(Operator::Sub))
+                    },
+                    // TODO: Dot
+                    // TODO: Enter
+                    // TODO: Backspace
+                    // TODO: Clear (delete?)
+                    //
+                    // TODO: All non-num-lock versions of key codes
+                    _ => None,
+                };
+
+                if let Some(m) = msg {
+                    link.send_message(m);
+                }
+            }
         });
         Self {
             result: "0".to_string(),
