@@ -1,4 +1,3 @@
-// TODO: Add keyboard support
 // TODO: Get better Backspace key icon
 use yew::{
     html,
@@ -21,7 +20,7 @@ use yew_hooks::use_clipboard;
 #[derive(Clone, Copy)]
 pub enum Msg {
     Calculate,
-    ClickNumber(f32),
+    ClickNumber(f64),
     ClickOperator(Operator),
     ClickDot,
     Backspace,
@@ -46,7 +45,7 @@ impl std::fmt::Display for Operator {
     }
 }
 
-fn number_button<COMP>(num: f32, styles: Classes, ctx: &Context<COMP>) -> Html 
+fn number_button<COMP>(num: f64, styles: Classes, ctx: &Context<COMP>) -> Html 
 where
     COMP: BaseComponent,
     <COMP as yew::BaseComponent>::Message: std::convert::From<Msg>,
@@ -104,7 +103,7 @@ fn CalculatorDisplay(props: &DisplayProps) -> Html {
 
     html! {
         <>
-            <p class={classes!("text-xl", "bg-slate-200", "rounded-t-lg", "p-1")}>
+            <p class={classes!("text-xl", "bg-slate-200", "rounded-t-lg", "px-2", "py-1")}>
                 { &calculation.0 }
                 {
                     if !props.set_number_1 {
@@ -114,7 +113,7 @@ fn CalculatorDisplay(props: &DisplayProps) -> Html {
                     }
                 }
             </p>
-            <p class={classes!("text-right", "bg-slate-200", "rounded-b-lg", "mb-3", "p-1", "hover:cursor-pointer", "hover:text-green-800")} // Replace with function component
+            <p class={classes!("text-right", "bg-slate-200", "rounded-b-lg", "mb-3", "px-2", "py-1", "hover:cursor-pointer", "hover:text-green-800")} // Replace with function component
                 {onclick}>
                 { "= " }{ &calculation.3 }
             </p>
@@ -129,13 +128,13 @@ pub struct Calculator {
     operator: Operator,
     set_number_1: bool,
     fragile_input: bool,
-    history: Vec<(f32, Operator, f32, f32)>,
+    history: Vec<(f64, Operator, f64, f64)>,
     _keydown_listener: EventListener,
 }
 impl Calculator {
     pub fn calculate(&mut self) {
-        let num_1: f32 = self.number_1.parse().unwrap();
-        let num_2: f32 = self.number_2.parse().unwrap();
+        let num_1: f64 = self.number_1.parse().unwrap();
+        let num_2: f64 = self.number_2.parse().unwrap();
         let res = match self.operator {
             Operator::Mul => num_1 * num_2,
             Operator::Div => num_1 / num_2,
@@ -169,11 +168,11 @@ impl Component for Calculator {
             
                 let msg = match event {
                     k if (48..=57).contains(&k.key_code()) && !k.shift_key() => { // Check if numeric (top row) and no shift key
-                        let n = (k.key_code() - 48) as f32; // Convert code to numeric value
+                        let n = (k.key_code() - 48) as f64; // Convert code to numeric value
                         Some(Msg::ClickNumber(n))
                     },
                     k if (96..=105).contains(&k.key_code()) => { // Check if numeric (num pad)
-                        let n = (k.key_code() - 96) as f32; // Convert code to numeric value
+                        let n = (k.key_code() - 96) as f64; // Convert code to numeric value
                         Some(Msg::ClickNumber(n))
                     },
                     // Multiply key
@@ -196,12 +195,25 @@ impl Component for Calculator {
                         || o.key_code() == 189 && !o.shift_key() => { // minus (no shift)
                         Some(Msg::ClickOperator(Operator::Sub))
                     },
-                    // TODO: Dot
-                    // TODO: Enter
-                    // TODO: Backspace
-                    // TODO: Clear (delete?)
-                    //
-                    // TODO: All non-num-lock versions of key codes
+                    // Dot key
+                    o if o.key_code() == 110 // num pad
+                        || o.key_code() == 190 && !o.shift_key() => { // period (no shift)
+                        Some(Msg::ClickDot)
+                    },
+                    // Enter / Equal key
+                    o if o.key_code() == 13 // num pad (and regular keyboard) enter
+                        || o.key_code() == 187 && !o.shift_key() => { // equal (no shift)
+                        Some(Msg::Calculate)
+                    },
+                    // Backspace key
+                    o if o.key_code() == 8 => {
+                        Some(Msg::Backspace)
+                    },
+                    // Clear (delete key)
+                    o if o.key_code() == 46 => {
+                        Some(Msg::Clear)
+                    },
+                    // TODO: Detect all non-num-lock versions of numbers
                     _ => None,
                 };
 
@@ -227,14 +239,14 @@ impl Component for Calculator {
             Msg::Calculate => self.calculate(),
             Msg::ClickNumber(n) => {
                 if self.set_number_1 {
-                    if (self.number_1.parse::<f32>().unwrap() == 0. && !self.number_1.contains('.')) || self.fragile_input {
+                    if (self.number_1.parse::<f64>().unwrap() == 0. && !self.number_1.contains('.')) || self.fragile_input {
                         self.number_1 = n.to_string();
                     } else {
                         self.number_1.push_str(&n.to_string());
                     }
                     self.number_2 = "0".to_string();
                     self.operator = Operator::Add;
-                } else if self.number_2.parse::<f32>().unwrap() == 0. && !self.number_2.contains('.') {
+                } else if self.number_2.parse::<f64>().unwrap() == 0. && !self.number_2.contains('.') {
                     self.number_2 = n.to_string();
                 } else {
                     self.number_2.push_str(&n.to_string());
@@ -267,7 +279,7 @@ impl Component for Calculator {
                     } else {
                         self.number_1.pop();
                     }
-                } else if self.number_2.parse::<f32>().unwrap() == 0. {
+                } else if self.number_2.parse::<f64>().unwrap() == 0. {
                     self.set_number_1 = true;
                 } else if self.number_2.len() <= 1 {
                     self.number_2 = "0".to_string();
@@ -311,7 +323,7 @@ impl Component for Calculator {
         let set_number_1 = self.set_number_1;
         html! {
             <div class={classes!("font-mono", "mx-auto", "sm:mt-4", "sm:container", "sm:w-full", "md:w-1/2", "lg:w-1/3", "xl:w-1/4")}>
-                <div class={classes!("bg-slate-500", "p-4", "sm:rounded-t-xl")}>
+                <div class={classes!("bg-slate-500", "p-5", "sm:rounded-t-xl")}>
                     <div>
                         <CalculatorDisplay {calculation} {set_number_1} />
                     </div>
@@ -339,7 +351,7 @@ impl Component for Calculator {
                         { button(Msg::Calculate, Classes::from("col-span-2 bg-slate-600"), ctx) }
                     </div>
                 </div>
-                <div class={classes!("bg-slate-200", "p-4", "sm:rounded-b-xl")}>
+                <div class={classes!("bg-slate-200", "p-5", "sm:rounded-b-xl")}>
                     <h1 class={classes!("text-xl")}>{ "History" }</h1>
                     {
                         self.history.iter().enumerate().map(|index_calculation| {
